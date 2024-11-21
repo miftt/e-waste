@@ -67,6 +67,23 @@ export async function POST(request: Request) {
         }
 
         const registrationsRef = collection(db, "registration_kurir")
+        const q = query(
+            registrationsRef,
+            where("role", "==", "kurir"),
+            orderBy("createdAt", "desc")
+          )
+          const querySnapshot = await getDocs(q)
+          const checkEmail = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            email: doc.data().email,  
+          }))
+      
+          if(checkEmail.length > 0 && checkEmail[0].email === email){
+            return NextResponse.json(
+              { error: "Email already exists", status: false, statusCode: 400 },
+              { status: 400 }
+            )
+          }
         const docRef = await addDoc(registrationsRef, courierData)
 
         return NextResponse.json({
