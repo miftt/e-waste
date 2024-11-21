@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -10,37 +10,66 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
 interface Courier {
-    id: number;
+    id: string;
     name: string;
     email: string;
+    phone: string;
     status: string;
     ktpNumber: string;
     ktpImage: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export default function KurirApprovalPage() {
     const [selectedCourier, setSelectedCourier] = useState<Courier | null>(null)
-    const [couriers, setCouriers] = useState<Courier[]>([
-        { id: 1, name: 'Jane Smith', email: 'jane@example.com', status: 'Pending', ktpNumber: '1234567890', ktpImage: '/contohktp.jpg' },
-        { id: 2, name: 'Bob Johnson', email: 'bob@example.com', status: 'Approved', ktpNumber: '0987654321', ktpImage: '/contohktp.jpg' },
-        { id: 3, name: 'Alice Williams', email: 'alice@example.com', status: 'Rejected', ktpNumber: '5678901234', ktpImage: '/contohktp.jpg' },
-    ])
+    const [couriers, setCouriers] = useState<Courier[]>([])
+    const [loading, setLoading] = useState(true)
 
-    const approveCourier = (id: number) => {
-        setCouriers(couriers.map(courier =>
-            courier.id === id ? { ...courier, status: 'Approved' } : courier
-        ))
-        setSelectedCourier(null)
+    const fetchCouriers = async () => {
+        try {
+            const response = await fetch('/api/registrations/kurir')
+            if (!response.ok) throw new Error('Failed to fetch couriers')
+            const data = await response.json()
+            setCouriers(data)
+        } catch (error) {
+            console.error('Error fetching couriers:', error)
+            toast.error('Failed to load courier data')
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const rejectCourier = (id: number) => {
-        setCouriers(couriers.map(courier =>
-            courier.id === id ? { ...courier, status: 'Rejected' } : courier
-        ))
-        setSelectedCourier(null)
+    const updateCourierStatus = async (id: string, status: 'Approved' | 'Rejected') => {
+        try {
+            const response = await fetch(`/api/registrations/kurir/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status }),
+            })
+
+            if (!response.ok) throw new Error('Failed to update status')
+
+            // Update local state
+            setCouriers(couriers.map(courier =>
+                courier.id === id ? { ...courier, status } : courier
+            ))
+            setSelectedCourier(null)
+            toast.success(`Courier successfully ${status.toLowerCase()}`)
+        } catch (error) {
+            console.error('Error updating courier status:', error)
+            toast.error('Failed to update courier status')
+        }
     }
+
+    useEffect(() => {
+        fetchCouriers()
+    }, [])
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -55,6 +84,16 @@ export default function KurirApprovalPage() {
         }
     }
 
+    if (loading) {
+        return (
+            <Card>
+                <CardContent className="flex items-center justify-center min-h-[400px]">
+                    <p>Loading courier data...</p>
+                </CardContent>
+            </Card>
+        )
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -67,8 +106,9 @@ export default function KurirApprovalPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[300px]">Name</TableHead>
-                                <TableHead className="w-[300px]">Email</TableHead>
                                 <TableHead className="w-[150px] text-center">Status</TableHead>
+                                <TableHead className="w-[200px] text-center">Requested at</TableHead>
+                                <TableHead className="w-[200px] text-center">updated at</TableHead>
                                 <TableHead className="w-[200px] text-center">Action</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -76,9 +116,14 @@ export default function KurirApprovalPage() {
                             {couriers.map((courier) => (
                                 <TableRow key={courier.id}>
                                     <TableCell className="font-medium">{courier.name}</TableCell>
-                                    <TableCell className="font-medium">{courier.email}</TableCell>
                                     <TableCell className="text-center">
                                         {getStatusBadge(courier.status)}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        {courier.createdAt ? `${new Date(courier.createdAt).toLocaleDateString('id-ID')} ${new Date(courier.createdAt).toLocaleTimeString('id-ID')}` : '-'}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        {courier.updatedAt ? `${new Date(courier.updatedAt).toLocaleDateString('id-ID')} ${new Date(courier.updatedAt).toLocaleTimeString('id-ID')}` : '-'}
                                     </TableCell>
                                     <TableCell className="text-center">
                                         {courier.status === 'Pending' && (
@@ -108,12 +153,28 @@ export default function KurirApprovalPage() {
                                                                     <Input id="name" value={selectedCourier.name} readOnly />
                                                                 </div>
                                                                 <div>
+                                                                    <Label htmlFor="email">Email</Label>
+                                                                    <Input id="name" value={selectedCourier.email} readOnly />
+                                                                </div>
+                                                                <div>
+                                                                    <Label htmlFor="email">Phone Number</Label>
+                                                                    <Input id="name" value={selectedCourier.phone} readOnly />
+                                                                </div>
+                                                                <div>
                                                                     <Label htmlFor="ktpNumber">KTP Number</Label>
                                                                     <Input id="ktpNumber" value={selectedCourier.ktpNumber} readOnly />
                                                                 </div>
                                                                 <div>
                                                                     <Label htmlFor="ktpImage">KTP Image</Label>
-                                                                    <Image src={selectedCourier.ktpImage} alt="KTP" width={400} height={300} className="w-full h-auto rounded-md" />
+                                                                    <div className="mt-2 rounded-md border">
+                                                                        <Image
+                                                                            src='/contohktp.jpg'
+                                                                            alt="KTP"
+                                                                            width={400}
+                                                                            height={300}
+                                                                            className="rounded-md"
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </ScrollArea>
@@ -121,13 +182,13 @@ export default function KurirApprovalPage() {
                                                     <div className="flex justify-end space-x-2 mt-4">
                                                         <Button
                                                             variant="outline"
-                                                            onClick={() => rejectCourier(selectedCourier!.id)}
+                                                            onClick={() => selectedCourier && updateCourierStatus(selectedCourier.id, 'Rejected')}
                                                             className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                                                         >
                                                             Reject
                                                         </Button>
                                                         <Button
-                                                            onClick={() => approveCourier(selectedCourier!.id)}
+                                                            onClick={() => selectedCourier && updateCourierStatus(selectedCourier.id, 'Approved')}
                                                             className="bg-green-600 text-white hover:bg-green-700"
                                                         >
                                                             Approve

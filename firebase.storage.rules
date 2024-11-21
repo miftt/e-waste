@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /ktp/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 5 * 1024 * 1024 // Limit file size to 5MB
+                   && request.resource.contentType.matches('image/.*'); // Only allow image files
+    }
+  }
+} 
