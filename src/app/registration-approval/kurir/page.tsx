@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Courier {
     id: string;
@@ -87,8 +88,37 @@ export default function KurirApprovalPage() {
     if (loading) {
         return (
             <Card>
-                <CardContent className="flex items-center justify-center min-h-[400px]">
-                    <p>Loading courier data...</p>
+                <CardHeader>
+                    <CardTitle>Kurir Registration Approval</CardTitle>
+                    <CardDescription>Approve or reject kurir registrations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="relative w-full overflow-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[300px]">Name</TableHead>
+                                    <TableHead className="w-[150px] text-center">Status</TableHead>
+                                    <TableHead className="w-[200px] text-center">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {[...Array(5)].map((_, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <Skeleton className="h-5 w-[250px]" />
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Skeleton className="h-5 w-[100px] mx-auto" />
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Skeleton className="h-9 w-[100px] mx-auto" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
         )

@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from 'sonner'
 
 interface Registration {
@@ -20,11 +21,19 @@ interface Registration {
 
 export default function MasyarakatApprovalPage() {
     const [registrations, setRegistrations] = useState<Registration[]>([])
+    const [loading, setLoading] = useState(true)
 
     const fetchRegistrationMasyarakat = async () => {
-        const response = await fetch("/api/registrations/masyarakat")
-        const data = await response.json()
-        setRegistrations(data)
+        try {
+            const response = await fetch("/api/registrations/masyarakat")
+            const data = await response.json()
+            setRegistrations(data)
+        } catch (error) {
+            console.error('Error fetching masyarakat registrations:', error)
+            toast.error('Failed to load masyarakat registration data')
+        } finally {
+            setLoading(false)
+        }
     }
 
     const updateMasyarakatStatus = async (id: string, status: 'Approved' | 'Rejected') => {
@@ -65,6 +74,52 @@ export default function MasyarakatApprovalPage() {
     useEffect(() => {
         fetchRegistrationMasyarakat()
     }, [])
+
+    if (loading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Masyarakat Registration Approval</CardTitle>
+                    <CardDescription>Approve or reject masyarakat registrations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="relative w-full overflow-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[250px]">Name</TableHead>
+                                    <TableHead className="w-[300px]">Email</TableHead>
+                                    <TableHead className="w-[150px] text-center">Status</TableHead>
+                                    <TableHead className="w-[250px] text-center">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {[...Array(5)].map((_, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <Skeleton className="h-5 w-[200px]" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Skeleton className="h-5 w-[250px]" />
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Skeleton className="h-5 w-[100px] mx-auto" />
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <div className="flex justify-center space-x-2">
+                                                <Skeleton className="h-9 w-[80px]" />
+                                                <Skeleton className="h-9 w-[80px]" />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+            </Card>
+        )
+    }
 
     return (
         <Card>
