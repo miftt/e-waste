@@ -152,7 +152,7 @@ export default function WasteTypes() {
                 <form onSubmit={handleSubmit} className="space-y-4 mb-4">
                     <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">Type</Label>
                             <Input id="name" name="name" required />
                         </div>
                         <div className="space-y-2">
