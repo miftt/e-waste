@@ -174,7 +174,7 @@ export default function WasteTypes() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Name</TableHead>
+                            <TableHead>Type</TableHead>
                             <TableHead>Category</TableHead>
                             <TableHead>Point</TableHead>
                             <TableHead>Actions</TableHead>
@@ -206,7 +206,7 @@ export default function WasteTypes() {
                                                 </DialogHeader>
                                                 <form onSubmit={handleUpdate} className="space-y-4">
                                                     <div className="space-y-2">
-                                                        <Label htmlFor="edit-name">Name</Label>
+                                                        <Label htmlFor="edit-name">Type</Label>
                                                         <Input
                                                             id="edit-name"
                                                             name="name"
