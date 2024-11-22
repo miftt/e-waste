@@ -84,7 +84,6 @@ export default function WasteTypes() {
             e.currentTarget.reset()
         } catch (error) {
             console.error('Error adding waste type:', error)
-            toast.error('Failed to add waste type')
         }
     }
 
